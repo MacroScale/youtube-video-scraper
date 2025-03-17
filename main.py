@@ -157,11 +157,21 @@ def email_alert(msg, testing: bool):
     print(res.text)
 
 def main():
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
 
+    print("starting main.py")
+
+    if not os.path.exists(OUTPUT_DIR):
+        print("creating output directory")
+        os.makedirs(OUTPUT_DIR)
+    else:
+        print("output dir found")
+
+
+    print("loading env file")
     load_dotenv()
+    print("env loaded")
     TESTING: bool = os.getenv("TESTING", "false").lower() in ("true", "1", "yes")
+    print(f"testing status: {TESTING}")
 
     try:
         YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
