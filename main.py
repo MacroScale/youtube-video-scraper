@@ -9,11 +9,60 @@ from dotenv import load_dotenv
 
 # need a list of CATEGORIES to get videos from
 QUERIES = [
-    "osu",
+    "cats",
+    "dogs",
+    "cooking",
+    "technology",
+    "music",
+    "travel",
+    "gaming",
+    "fitness",
+    "news",
+    "tutorials",
+    "fashion",
+    "beauty",
+    "diy",
+    "art",
+    "photography",
+    "movies",
+    "books",
+    "science",
+    "history",
+    "education",
+    "finance",
+    "business",
+    "startups",
+    "marketing",
+    "programming",
+    "design",
+    "productivity",
+    "motivation",
+    "inspiration",
+    "meditation",
+    "yoga",
+    "sports",
+    "football",
+    "basketball",
+    "cricket",
+    "racing",
+    "cars",
+    "motorcycles",
+    "food",
+    "restaurants",
+    "recipes",
+    "health",
+    "wellness",
+    "parenting",
+    "relationships",
+    "gardening",
+    "home decor",
+    "real estate",
+    "investing",
+    "crypto",
 ]
 
 # total amount of videos to scrape across all categories
-TOTAL_AMOUNT = 5
+TOTAL_AMOUNT = 50000
 
 # Constants
 OUTPUT_DIR = "out"
