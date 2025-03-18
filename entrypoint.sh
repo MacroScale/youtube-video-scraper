@@ -1,12 +1,16 @@
 #!/bin/sh
 
-echo "uv syncing"
+echo "Syncing dependencies with uv"
 uv sync
 
-echo "uv running"
-uv run main.py
+echo "Activating virtual environment"
+source .venv/bin/activate
 
-echo "now sleeping"
+echo "Running main.py with python"
+python main.py
+
+echo "main.py finished"
+
 while true; do
   sleep 3600
 done
