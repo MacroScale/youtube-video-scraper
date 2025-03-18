@@ -160,80 +160,80 @@ def main():
 
     print("starting main.py")
 
-    # if not os.path.exists(OUTPUT_DIR):
-    #     print("creating output directory")
-    #     os.makedirs(OUTPUT_DIR)
-    # else:
-    #     print("output dir found")
-    #
-    #
-    # print("loading env file")
-    # load_dotenv()
-    # print("env loaded")
-    # TESTING: bool = os.getenv("TESTING", "false").lower() in ("true", "1", "yes")
-    # print(f"testing status: {TESTING}")
-    #
-    # try:
-    #     YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
-    #     serv = get_youtube_service(YOUTUBE_API_KEY)
-    #
-    #     progress = load_progress()
-    #     query_index = progress["query_index"]
-    #     next_page_token = progress["page_token"]
-    #     videos_collected = progress["videos_collected"]
-    #
-    #     print(f"Starting from: query_index={query_index}, videos_collected={videos_collected}")  # Added
-    #
-    #     video_data = []
-    #
-    #     while videos_collected < TOTAL_AMOUNT:
-    #         query = QUERIES[query_index]
-    #         print(f"Processing query: {query}") 
-    #
-    #         try:
-    #             search_response = search_videos(serv, query, page_token=next_page_token)
-    #             video_ids = [item["id"]["videoId"] for item in search_response.get("items", []) if "videoId" in item["id"]]
-    #
-    #             if video_ids:
-    #                 print(f"Found {len(video_ids)} videos in this batch.")
-    #                 details_response = get_video_details_batch(serv, video_ids)
-    #                 video_data.extend(details_response.get("items", []))
-    #                 videos_collected += len(video_ids)
-    #
-    #             next_page_token = search_response.get("nextPageToken")
-    #
-    #             if not next_page_token:
-    #                 query_index += 1
-    #                 next_page_token = None
-    #                 if query_index >= len(QUERIES):
-    #                     query_index = 0 
-    #             time.sleep(0.5)
-    #
-    #             if videos_collected % 1000 == 0:
-    #                 print(f"Collected {videos_collected} videos.")
-    #                 save_progress({"query_index": query_index, "page_token": next_page_token, "videos_collected": videos_collected})
-    #
-    #         except HttpError as e:
-    #             if e.resp.status == 403 and "quotaExceeded" in str(e):
-    #                 print("Quota exceeded. Retrying in 1 hour.")
-    #                 time.sleep(3600) # wait one hour
-    #             else:
-    #                 print(f"An HTTP error occurred: {e}")
-    #                 time.sleep(60) # wait one min on other errs
-    #
-    #         except Exception as e:
-    #             print(f"An error occured: {e}")
-    #             time.sleep(60) # wait one min on other errs
-    #
-    #     write_data(DATA_FILE, video_data)
-    #     save_progress({"query_index": query_index, "page_token": next_page_token, "videos_collected": videos_collected})
-    #
-    #     msg = "The program has finished successfully, all data has been acquired"
-    #     email_alert(msg, TESTING)
-    #
-    # except Exception as err:
-    #     msg = f"There was an error that has caused the program to crash: {err}"
-    #     email_alert(msg, TESTING)
+    if not os.path.exists(OUTPUT_DIR):
+        print("creating output directory")
+        os.makedirs(OUTPUT_DIR)
+    else:
+        print("output dir found")
+
+
+    print("loading env file")
+    load_dotenv()
+    print("env loaded")
+    TESTING: bool = os.getenv("TESTING", "false").lower() in ("true", "1", "yes")
+    print(f"testing status: {TESTING}")
+
+    try:
+        YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
+        serv = get_youtube_service(YOUTUBE_API_KEY)
+
+        progress = load_progress()
+        query_index = progress["query_index"]
+        next_page_token = progress["page_token"]
+        videos_collected = progress["videos_collected"]
+
+        print(f"Starting from: query_index={query_index}, videos_collected={videos_collected}")  # Added
+
+        video_data = []
+
+        while videos_collected < TOTAL_AMOUNT:
+            query = QUERIES[query_index]
+            print(f"Processing query: {query}") 
+
+            try:
+                search_response = search_videos(serv, query, page_token=next_page_token)
+                video_ids = [item["id"]["videoId"] for item in search_response.get("items", []) if "videoId" in item["id"]]
+
+                if video_ids:
+                    print(f"Found {len(video_ids)} videos in this batch.")
+                    details_response = get_video_details_batch(serv, video_ids)
+                    video_data.extend(details_response.get("items", []))
+                    videos_collected += len(video_ids)
+
+                next_page_token = search_response.get("nextPageToken")
+
+                if not next_page_token:
+                    query_index += 1
+                    next_page_token = None
+                    if query_index >= len(QUERIES):
+                        query_index = 0 
+                time.sleep(0.5)
+
+                if videos_collected % 1000 == 0:
+                    print(f"Collected {videos_collected} videos.")
+                    save_progress({"query_index": query_index, "page_token": next_page_token, "videos_collected": videos_collected})
+
+            except HttpError as e:
+                if e.resp.status == 403 and "quotaExceeded" in str(e):
+                    print("Quota exceeded. Retrying in 1 hour.")
+                    time.sleep(3600) # wait one hour
+                else:
+                    print(f"An HTTP error occurred: {e}")
+                    time.sleep(60) # wait one min on other errs
+
+            except Exception as e:
+                print(f"An error occured: {e}")
+                time.sleep(60) # wait one min on other errs
+
+        write_data(DATA_FILE, video_data)
+        save_progress({"query_index": query_index, "page_token": next_page_token, "videos_collected": videos_collected})
+
+        msg = "The program has finished successfully, all data has been acquired"
+        email_alert(msg, TESTING)
+
+    except Exception as err:
+        msg = f"There was an error that has caused the program to crash: {err}"
+        email_alert(msg, TESTING)
 
 if __name__ == "__main__":
     main()
