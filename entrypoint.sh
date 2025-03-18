@@ -7,7 +7,7 @@ echo "Activating virtual environment"
 source .venv/bin/activate
 
 echo "Running main.py with python"
-python main.py
+python -u main.py
 
 echo "main.py finished"
 
