@@ -68,6 +68,7 @@ TOTAL_AMOUNT = 50000
 OUTPUT_DIR = "out"
 PROGRESS_FILE = os.path.join(OUTPUT_DIR, "progress.json")
 DATA_FILE = os.path.join(OUTPUT_DIR, "youtube_data.json")
+ALL_DATA_FILE = os.path.join(OUTPUT_DIR, "all_youtube_data.json")
 
 
 def get_youtube_service(api_key):
@@ -95,7 +96,7 @@ def get_video_details_batch(youtube, video_ids):
 
 # write data to json file
 def write_data(filename: str, new_data: list):
-    """Writes video data to a JSON file, handling existing data."""
+    """ Writes video data to a JSON file, handling existing data. """
     try:
         with open(filename, 'r') as f:
             existing_data = json.load(f)
@@ -124,7 +125,6 @@ def load_progress():
 
 # email when complete
 def email_alert(msg, testing: bool):
-
     if testing:
         print(msg)
         return
@@ -174,8 +174,32 @@ def main():
     print(f"testing status: {TESTING}")
 
     try:
-        YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
-        serv = get_youtube_service(YOUTUBE_API_KEY)
+        YOUTUBE_API_KEYS = [
+                os.getenv("YOUTUBE_API_KEY_1", ""),
+                os.getenv("YOUTUBE_API_KEY_2", ""),
+                os.getenv("YOUTUBE_API_KEY_3", ""),
+                os.getenv("YOUTUBE_API_KEY_4", ""),
+                os.getenv("YOUTUBE_API_KEY_5", ""),
+                os.getenv("YOUTUBE_API_KEY_6", ""),
+                os.getenv("YOUTUBE_API_KEY_7", ""),
+                os.getenv("YOUTUBE_API_KEY_8", ""),
+                os.getenv("YOUTUBE_API_KEY_9", ""),
+                os.getenv("YOUTUBE_API_KEY_10", ""),
+        ]
+
+        servs = [
+                get_youtube_service(YOUTUBE_API_KEYS[0]),
+                get_youtube_service(YOUTUBE_API_KEYS[1]),
+                get_youtube_service(YOUTUBE_API_KEYS[2]),
+                get_youtube_service(YOUTUBE_API_KEYS[3]),
+                get_youtube_service(YOUTUBE_API_KEYS[4]),
+                get_youtube_service(YOUTUBE_API_KEYS[5]),
+                get_youtube_service(YOUTUBE_API_KEYS[6]),
+                get_youtube_service(YOUTUBE_API_KEYS[7]),
+                get_youtube_service(YOUTUBE_API_KEYS[8]),
+                get_youtube_service(YOUTUBE_API_KEYS[9]),
+        ]
+        servs_idx = 0
 
         progress = load_progress()
         query_index = progress["query_index"]
@@ -184,20 +208,24 @@ def main():
 
         print(f"Starting from: query_index={query_index}, videos_collected={videos_collected}")  # Added
 
-        video_data = []
+        all_video_data = []
+        current_video_data = []
 
         while videos_collected < TOTAL_AMOUNT:
             query = QUERIES[query_index]
             print(f"Processing query: {query}") 
 
             try:
-                search_response = search_videos(serv, query, page_token=next_page_token)
+                search_response = search_videos(servs[servs_idx], query, page_token=next_page_token)
                 video_ids = [item["id"]["videoId"] for item in search_response.get("items", []) if "videoId" in item["id"]]
 
                 if video_ids:
                     print(f"Found {len(video_ids)} videos in this batch.")
-                    details_response = get_video_details_batch(serv, video_ids)
-                    video_data.extend(details_response.get("items", []))
+                    details_response = get_video_details_batch(servs[servs_idx], video_ids)
+
+                    all_video_data.extend(details_response.get("items", []))
+                    current_video_data.extend(details_response.get("items", []))
+
                     videos_collected += len(video_ids)
 
                 next_page_token = search_response.get("nextPageToken")
@@ -209,6 +237,10 @@ def main():
                         query_index = 0 
                 time.sleep(0.5)
 
+                print(f"Writing {len(current_video_data)} videos. to youtube_data.json")
+                write_data(DATA_FILE, current_video_data)
+                current_video_data = []
+
                 if videos_collected % 1000 == 0:
                     print(f"Collected {videos_collected} videos.")
                     save_progress({"query_index": query_index, "page_token": next_page_token, "videos_collected": videos_collected})
@@ -216,7 +248,9 @@ def main():
             except HttpError as e:
                 if e.resp.status == 403 and "quotaExceeded" in str(e):
                     print("Quota exceeded. Retrying in 1 hour.")
-                    time.sleep(3600) # wait one hour
+                    old_servs_idx = servs_idx
+                    servs_idx = servs_idx+1 % 10
+                    print("changing servs_idx from", old_servs_idx, "to", servs_idx)
                 else:
                     print(f"An HTTP error occurred: {e}")
                     time.sleep(60) # wait one min on other errs
@@ -225,15 +259,18 @@ def main():
                 print(f"An error occured: {e}")
                 time.sleep(60) # wait one min on other errs
 
-        write_data(DATA_FILE, video_data)
+
         save_progress({"query_index": query_index, "page_token": next_page_token, "videos_collected": videos_collected})
+        write_data(ALL_DATA_FILE, current_video_data)
 
         msg = "The program has finished successfully, all data has been acquired"
-        email_alert(msg, TESTING)
+        print(msg)
+        #email_alert(msg, TESTING)
 
     except Exception as err:
         msg = f"There was an error that has caused the program to crash: {err}"
-        email_alert(msg, TESTING)
+        print(msg)
+        #email_alert(msg, TESTING)
 
 if __name__ == "__main__":
     main()
